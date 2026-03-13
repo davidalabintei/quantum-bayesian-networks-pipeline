@@ -1,0 +1,23 @@
+# ── Core data ──────────────────────────────────────────────────────────
+numpy>=1.26,<2.0
+pandas>=2.0
+openpyxl>=3.1          # reading README.xlsx
+
+# ── Bayesian network (classical inference + CPT generation) ────────────
+pgmpy>=0.1.25
+
+# ── Quantum computing (Qiskit stack) ──────────────────────────────────
+qiskit==1.0.0
+qiskit-algorithms==0.3.0
+qiskit-aer>=0.13
+
+# ── Quantum circuit visualisation ─────────────────────────────────────
+pylatexenc>=2.10
+matplotlib>=3.7
+
+# ── Variational inference ─────────────────────────────────────────────
+tensorflow>=2.13,<2.16   # qubayes variational_inference uses tf
+
+# ── Utilities ─────────────────────────────────────────────────────────
+tqdm>=4.65
+ipykernel>=6.0           # registers the env as a Jupyter kernel
