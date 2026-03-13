@@ -24,3 +24,8 @@ build/
 logs/
 results/
 *.log
+
+# Unused qubayes files — not part of this project
+qubayes/qubayes/rail_defect_bn.py
+qubayes/qubayes/rail_all_bn.py
+qubayes/qubayes/qubayes_tools_kwon.py
