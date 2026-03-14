@@ -27,8 +27,8 @@ from qiskit import ClassicalRegister, QuantumCircuit, transpile
 from qiskit.circuit.library import GroverOperator, MCMT, MCMTVChain, ZGate, RYGate
 from qiskit_aer import AerSimulator
 from math import ceil, log2, atan2, sqrt
-from qubayes.qubayes.config import MODEL_FLN
-from qubayes.qubayes.dataset_stats import MusicDataset
+from qubayes.config import MODEL_FLN
+from qubayes.dataset_stats import MusicDataset
 
 
 def run_circuit(circuit, draw_circuit=False, use_sim=True, shots=1024, verbose=False, seed=42):

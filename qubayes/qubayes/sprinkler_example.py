@@ -5,7 +5,7 @@ Murphys lecture notes: https://www.cs.ubc.ca/~murphyk/Bayes/bnintro.html
 __author__ = "Florian Krebs"
 
 import numpy as np
-from qubayes.qubayes.qubayes_tools import Query, QBNQuery, Node, Graph, BayesNet
+from qubayes.qubayes_tools import Query, QBNQuery, Node, Graph, BayesNet
 
 
 class SprinklerBN(BayesNet):

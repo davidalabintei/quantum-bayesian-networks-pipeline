@@ -757,8 +757,8 @@
 # if __name__ == "__main__":
 #     main(which_bn='rail')
 #############################################################################
-from qubayes.qubayes.rail_all_bn import RailAllBN
-# from qubayes.qubayes.railall_bn import RailAllBN
+from qubayes.rail_all_bn import RailAllBN
+# from qubayes.railall_bn import RailAllBN
 from qiskit.circuit.library import RealAmplitudes, EfficientSU2
 from qiskit import QuantumCircuit, transpile
 from qiskit_aer import AerSimulator
@@ -768,7 +768,7 @@ from tensorflow.keras import layers
 from tensorflow.keras.callbacks import EarlyStopping
 from copy import deepcopy
 import matplotlib.pyplot as plt
-from qubayes.qubayes.qubayes_tools import Node, Graph, BayesNet
+from qubayes.qubayes_tools import Node, Graph, BayesNet
 import itertools
 from qiskit_algorithms import optimizers
 

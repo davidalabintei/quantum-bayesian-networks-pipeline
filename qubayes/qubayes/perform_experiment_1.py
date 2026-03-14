@@ -7,7 +7,7 @@ __author__ = "Florian Krebs"
 import os.path
 import argparse
 import numpy as np
-from qubayes.qubayes.qubayes_tools import QBNMusicQuery
+from qubayes.qubayes_tools import QBNMusicQuery
 from qubayes.config import MODEL_FLN
 
 
