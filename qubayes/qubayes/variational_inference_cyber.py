@@ -289,6 +289,71 @@ class BornMachine:
         return self.q_bm
 
 
+class BNStructuredBornMachine:
+    """
+    Problem-inspired 2-qubit Born machine that mirrors the QBN circuit encoding.
+
+    Instead of the generic RY+CNOT pattern (RealAmplitudes), this circuit uses
+    conditional RY gates that directly mirror how the QBN encodes a 4-state CPT:
+
+        q0: ─ RY(θ₀) ─ X ─ ●──── X ─ ●──── measure
+        q1: ──────────────── RY(θ₁) ── RY(θ₂) ── measure
+
+    where:
+        P(b0 = 1)        = sin²(θ₀/2)
+        P(b1 = 1 | b0=0) = sin²(θ₁/2)   [CRY fires after X flip when b0=0→q0=1]
+        P(b1 = 1 | b0=1) = sin²(θ₂/2)   [CRY fires when q0=1, i.e. b0=1]
+
+    State index = b0 + 2·b1 (same encoding as CyberAttackA2BN / CyberAttackA1BN).
+
+    3 parameters vs RealAmplitudes-reps1 (4 params).  Each parameter has a direct
+    probabilistic interpretation.  No H-gate initialisation — circuit starts from |00⟩.
+    """
+
+    def __init__(self, n_qubits=2):
+        assert n_qubits == 2, "BNStructuredBornMachine requires exactly 2 qubits."
+        self.n_qubits    = n_qubits
+        self.n_blocks    = 0           # informational only
+        self.ansatz_type = 'BNStructured'
+        self.q_bm        = None
+        # Initialise angles uniformly in [0, π] so probabilities span [0, 1]
+        self.params = np.random.uniform(0.1, np.pi - 0.1, size=3)
+
+    def _build_circuit(self) -> QuantumCircuit:
+        """Construct the BN-structured 2-qubit circuit with current params."""
+        θ = self.params
+        qc = QuantumCircuit(self.n_qubits)
+        qc.ry(float(θ[0]), 0)      # encodes P(b0=1)
+        qc.x(0)                     # flip q0 so CRY below fires on original b0=0
+        qc.cry(float(θ[1]), 0, 1)  # encodes P(b1=1 | b0=0)
+        qc.x(0)                     # restore q0
+        qc.cry(float(θ[2]), 0, 1)  # encodes P(b1=1 | b0=1)
+        return qc
+
+    def sample(self, n_samples, return_samples=True):
+        circuit = self._build_circuit()
+        circuit.measure_all()
+        simulator = AerSimulator(method='matrix_product_state')
+        result    = simulator.run(
+            transpile(circuit, simulator), shots=n_samples, memory=True
+        ).result()
+        counts    = result.get_counts()
+        self.q_bm = counts_to_cpd(counts, reverse=True)
+        if return_samples:
+            raw     = result.get_memory()
+            samples = np.array(
+                [[c == '1' for c in s[::-1]] for s in raw], dtype='int32'
+            )
+            return samples
+        return self.q_bm
+
+    def reset_ansatz(self):
+        pass   # not needed; circuit is rebuilt from params in every sample() call
+
+    def print_circuit(self):
+        print(self._build_circuit().decompose())
+
+
 def plot_optimization_metrics(metrics, save_path=None):
     fig, axes = plt.subplots(1, 2, figsize=(13, 4))
     axes[0].plot(metrics['kl_loss'], label='Loss (Eq. 7)')

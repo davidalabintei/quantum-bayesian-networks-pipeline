@@ -163,3 +163,100 @@ class CyberAttackA2BN(BayesNet):
             b0, b1 = self.a2_idx_to_bits(a2_idx)
             post_bits[b0, b1] = p_a2[a2_idx]
         return post_bits
+
+
+class CyberAttackA1BN(BayesNet):
+    """
+    Variational inference wrapper targeting AttackType_1 posterior.
+
+    Latent variable z: AttackType_1 (4 states) encoded as 2 bits:
+        b1 b0 | state
+         0  0 | Normal   (0)
+         0  1 | MiTM     (1)
+         1  0 | DoS      (2)
+         1  1 | Physical (3)
+
+    Supports two evidence modes (auto-detected from the evidence dict):
+        Sensor evidence  — keys are sensor node names (e.g. FlowState_2)
+                           P(e | A1=i) = Σ_{a2} P(e|A2=a2) · A21[a2, i]
+        Direct A2        — key is 'AttackType_2'
+                           P(A2=obs | A1=i) = A21[obs, i]
+    """
+
+    _ALL_SENSORS = {
+        "ValveState_2": P_VALVE_S2, "FlowState_2": P_FLOW_S2,
+        "TankState_2":  P_TANK_S2,  "ValveState_1": P_VALVE_S1,
+        "PumpState_1":  P_PUMP_S1,  "TankState_1":  P_TANK_S1,
+    }
+
+    def __init__(self):
+        self.attack_order  = ATTACK_ORDER
+        self.attack_to_idx = {k: i for i, k in enumerate(ATTACK_ORDER)}
+        self.P_A1 = P_A1
+        self.A21  = A21
+        self.graph = self._create_graph()
+
+    def _create_graph(self):
+        a1 = Node("AttackType_1", data=np.ones(4) / 4.0)
+        return Graph({"AttackType_1": a1})
+
+    @staticmethod
+    def a1_idx_to_bits(a1_idx: int):
+        return (a1_idx & 1, (a1_idx >> 1) & 1)
+
+    @staticmethod
+    def bits_to_a1_idx(bits_2):
+        return int(bits_2[0]) + 2 * int(bits_2[1])
+
+    def _log_lik_per_state(self, evidence: dict) -> np.ndarray:
+        """Shape-(4,) array: log P(evidence | A1=i) for i = 0..3."""
+        if "AttackType_2" in evidence:
+            a2_obs = int(evidence["AttackType_2"])
+            return np.log(np.maximum(self.A21[a2_obs, :], 1e-12))
+
+        # Sensor evidence: marginalise over A2
+        p_e_given_a2 = np.ones(4, dtype=float)
+        for node, val in evidence.items():
+            if node not in self._ALL_SENSORS:
+                raise ValueError(f"Unsupported evidence node: {node}")
+            p_ab = self._ALL_SENSORS[node]
+            for j in range(4):
+                p = float(p_ab[j]) if int(val) == 1 else (1.0 - float(p_ab[j]))
+                p_e_given_a2[j] *= max(1e-12, p)
+        # P(e | A1=i) = Σ_j P(e | A2=j) · A21[j, i]
+        return np.log(np.maximum(p_e_given_a2 @ self.A21, 1e-12))
+
+    def compute_p_prior(self) -> np.ndarray:
+        """P(A1) as a (2, 2) tensor over (b0, b1) bit pairs."""
+        p_bits = np.zeros((2, 2), dtype=float)
+        for i in range(4):
+            b0, b1 = self.a1_idx_to_bits(i)
+            p_bits[b0, b1] = self.P_A1[i]
+        return p_bits / p_bits.sum()
+
+    def sample_from_prior(self, n_samples: int) -> np.ndarray:
+        """Draw n_samples from P(A1). Returns (n_samples, 2) int array."""
+        a1_draws = np.random.choice(4, size=n_samples,
+                                    p=self.P_A1 / self.P_A1.sum())
+        return np.array([self.a1_idx_to_bits(i) for i in a1_draws],
+                        dtype=np.int32)
+
+    def compute_log_likelihood(self, samples, evidence=None) -> np.ndarray:
+        """log P(evidence | A1) for each (b0, b1) sample row."""
+        if not evidence:
+            return np.zeros(samples.shape[0])
+        table = self._log_lik_per_state(evidence)
+        return np.array([table[self.bits_to_a1_idx(s)] for s in samples])
+
+    def compute_posterior(self, evidence=None) -> np.ndarray:
+        """Exact P(A1 | evidence) as (2, 2) tensor. Used for TVD tracking."""
+        log_p = np.log(np.maximum(self.P_A1, 1e-12))
+        if evidence:
+            log_p = log_p + self._log_lik_per_state(evidence)
+        log_p -= log_p.max()
+        p_a1 = np.exp(log_p); p_a1 /= p_a1.sum()
+        post_bits = np.zeros((2, 2), dtype=float)
+        for i in range(4):
+            b0, b1 = self.a1_idx_to_bits(i)
+            post_bits[b0, b1] = p_a1[i]
+        return post_bits
