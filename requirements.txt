@@ -10,6 +10,7 @@ pgmpy>=0.1.25
 qiskit==1.0.0
 qiskit-algorithms==0.3.0
 qiskit-aer>=0.13
+qiskit-ibm-runtime>=0.20       # IBM hardware execution (Phase 6)
 
 # ── Quantum circuit visualisation ─────────────────────────────────────
 pylatexenc>=2.10
