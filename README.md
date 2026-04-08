@@ -110,6 +110,7 @@ Open and run **`cyber_inference_experiments.ipynb`** top to bottom.
 | 4a | Classical Variational Inference (CAVI) |
 | 4b | Quantum Variational Inference (QVI-RA0, QVI-RA1, QVI-BN) |
 | 5  | Sensitivity analysis (OAT + Monte Carlo uncertainty bands) |
+| 6  | IBM Quantum hardware execution — QRS and QVI on ibm_fez (Heron r2) |
 
 ---
 
@@ -130,7 +131,7 @@ Physical column tier values are applied **consistently across both subsystems** 
 
 ## Key Results
 
-### Inference accuracy and efficiency (10 runs, N=400/512 shots)
+### Inference accuracy and efficiency (10 runs, N=400/512 shots — simulator)
 
 | Method | Mean \|Err\| (avg Q1–Q4) | Notes |
 |--------|--------------------------|-------|
@@ -143,12 +144,25 @@ Physical column tier values are applied **consistently across both subsystems** 
 | QLW | 0.0147 | No advantage over CLW; quantum circuit does not resolve weight degeneracy |
 | CAVI | 0.143 | Mean-field collapse on Q1/Q2 (error ≈ 0.28); exact on Q3/Q4 (direct evidence) |
 
-### Quantum advantage (Phase 1b)
+### Quantum advantage (Phase 1b — simulator)
 
 | Query | Evidence rarity | QRS speedup | QRS std reduction |
 |-------|----------------|-------------|-------------------|
 | Q1/Q2 | P(e) = 0.0091 | **123×** | **6×** |
 | Q3/Q4 | P(e) = 0.0319 | **29×** | **4×** |
+
+### IBM Quantum hardware results (Phase 6 — ibm_fez, Heron r2)
+
+QRS and QVI were evaluated on IBM `ibm_fez` for Q3/Q4 (evidence: A2=MiTM, k=4 Grover iterations, 4096 shots).
+
+| Method | Q3 HW | Q3 \|Err\| | Q4 HW | Q4 \|Err\| | Circuit | 2Q gates |
+|--------|-------|-----------|-------|-----------|---------|----------|
+| QRS | 0.3185 | **0.3147** | 0.2448 | **0.1178** | 10q, d=102 | hundreds |
+| QVI-RA0 | 0.6033 | 0.0299 | 0.3889 | 0.0263 | 2q, d=4 | 0 |
+| QVI-RA1 | 0.6443 | **0.0111** | 0.3411 | 0.0216 | 2q, d=8 | 1 |
+| QVI-BN | 0.6455 | 0.0123 | 0.3459 | **0.0167** | 2q, d=13 | 1 |
+
+**Key finding:** QRS posteriors collapse toward the uniform prior (0.25) on hardware — the 10-qubit Grover circuit (depth 102 + amplification) exceeds the device's coherence budget. QVI Born machine circuits (2 qubits, depth 4–13) incur near-zero noise penalty, with hardware errors 10–30× smaller than QRS. This confirms that **circuit depth, not algorithm class, determines NISQ viability** for quantum probabilistic inference.
 
 ### Sensitivity (Phase 5)
 
@@ -177,9 +191,10 @@ Physical column tier values are applied **consistently across both subsystems** 
 | pandas | ≥2.0 | Data handling |
 | openpyxl | ≥3.1 | Reading README.xlsx |
 | pgmpy | ≥0.1.25 | Exact inference (Variable Elimination) |
-| qiskit | ==1.0.0 | Quantum circuit construction |
-| qiskit-aer | ≥0.13 | Quantum simulation backend |
-| qiskit-algorithms | ==0.3.0 | Grover operator utilities |
+| qiskit | ≥2.2 | Quantum circuit construction |
+| qiskit-aer | ≥0.15 | Quantum simulation backend |
+| qiskit-algorithms | ≥0.4 | Grover operator utilities |
+| qiskit-ibm-runtime | ≥0.46 | IBM Quantum hardware execution (Phase 6) |
 | tensorflow | ≥2.13, <2.16 | Variational inference (Born machine training) |
 | matplotlib | ≥3.7 | Figures |
 
@@ -198,6 +213,7 @@ This work extends the framework with:
 - Quantum Likelihood Weighting (`QLW`) implementation
 - Quantum Variational Inference with multiple ansatz variants (`variational_inference_cyber.py`)
 - Full experimental comparison pipeline (`cyber_inference_experiments.ipynb`)
+- IBM Quantum hardware execution and evaluation (Phase 6)
 
 ---
 
