@@ -79,7 +79,7 @@ pip install -r requirements.txt
 pip install -e qubayes/
 ```
 
-> **Note:** `qiskit==1.0.0` and `qiskit-aer>=0.13` are required. Qiskit 2.x is not yet supported. Pin your environment to avoid silent breakage.
+> **Note:** `qiskit>=2.2` and `qiskit-ibm-runtime>=0.46` are required for hardware execution (Phase 6). See `requirements.txt` for full dependency list.
 
 ---
 
@@ -110,7 +110,7 @@ Open and run **`cyber_inference_experiments.ipynb`** top to bottom.
 | 4a | Classical Variational Inference (CAVI) |
 | 4b | Quantum Variational Inference (QVI-RA0, QVI-RA1, QVI-BN) |
 | 5  | Sensitivity analysis (OAT + Monte Carlo uncertainty bands) |
-| 6  | IBM Quantum hardware execution — QRS and QVI on ibm_fez (Heron r2) |
+| 6  | IBM Quantum hardware execution — QRS, QLW, and QVI on ibm_fez (Heron r2) |
 
 ---
 
@@ -153,16 +153,22 @@ Physical column tier values are applied **consistently across both subsystems** 
 
 ### IBM Quantum hardware results (Phase 6 — ibm_fez, Heron r2)
 
-QRS and QVI were evaluated on IBM `ibm_fez` for Q3/Q4 (evidence: A2=MiTM, k=4 Grover iterations, 4096 shots).
+QRS, QLW, and QVI were evaluated on IBM `ibm_fez` for Q3/Q4 (evidence: A2=MiTM, 4096 shots).
 
-| Method | Q3 HW | Q3 \|Err\| | Q4 HW | Q4 \|Err\| | Circuit | 2Q gates |
-|--------|-------|-----------|-------|-----------|---------|----------|
-| QRS | 0.3185 | **0.3147** | 0.2448 | **0.1178** | 10q, d=102 | hundreds |
-| QVI-RA0 | 0.6033 | 0.0299 | 0.3889 | 0.0263 | 2q, d=4 | 0 |
-| QVI-RA1 | 0.6443 | **0.0111** | 0.3411 | 0.0216 | 2q, d=8 | 1 |
-| QVI-BN | 0.6455 | 0.0123 | 0.3459 | **0.0167** | 2q, d=13 | 1 |
+| Method | Q3 HW | Q3 \|Err\| | Q4 HW | Q4 \|Err\| | Circuit | Grover |
+|--------|-------|-----------|-------|-----------|---------|--------|
+| QRS | 0.3185 | 0.3147 | 0.2448 | 0.1178 | 10q, d=102 | k=4 |
+| QLW | 0.0500 | **0.5832** | 0.9470 | **0.5844** | 10q, d=98 | none |
+| QVI-RA0 | 0.6033 | 0.0299 | 0.3889 | 0.0263 | 2q, d=4 | n/a |
+| QVI-RA1 | 0.6443 | **0.0111** | 0.3411 | 0.0216 | 2q, d=8 | n/a |
+| QVI-BN | 0.6455 | 0.0123 | 0.3459 | **0.0167** | 2q, d=13 | n/a |
 
-**Key finding:** QRS posteriors collapse toward the uniform prior (0.25) on hardware — the 10-qubit Grover circuit (depth 102 + amplification) exceeds the device's coherence budget. QVI Born machine circuits (2 qubits, depth 4–13) incur near-zero noise penalty, with hardware errors 10–30× smaller than QRS. This confirms that **circuit depth, not algorithm class, determines NISQ viability** for quantum probabilistic inference.
+**Key findings:**
+1. **QRS** posteriors collapse toward the uniform prior (0.25) — the 10-qubit Grover circuit exceeds the device's coherence budget.
+2. **QLW** is even worse than QRS despite being 4 layers shallower (depth 98 vs 102). The likelihood reweighting amplifies noise: corrupted samples receive wrong weights, producing posteriors further from exact than the uniform prior. This confirms the QBN state-preparation encoding is the bottleneck, not Grover amplification specifically.
+3. **QVI** Born machine circuits (2 qubits, depth 4–13) incur near-zero noise penalty, with hardware errors 10–30× smaller than QRS.
+
+**Conclusion:** Circuit depth — not algorithm class — determines NISQ viability for quantum probabilistic inference. Classical post-processing (reweighting) cannot rescue noisy quantum samples.
 
 ### Sensitivity (Phase 5)
 
