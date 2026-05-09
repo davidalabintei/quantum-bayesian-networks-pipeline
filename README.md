@@ -93,7 +93,7 @@ Open and run **`cyber_bn_cpt_generation.ipynb`** top to bottom.
 This notebook derives all three CPT sets from the HIL dataset:
 - **Set 1** `P(AttackType_1)` — data-derived from attack window timestamps
 - **Set 2** `P(AttackType_2 | AttackType_1)` — data-derived transition matrix with corrected PLC-targeting labelling
-- **Set 3** `P(Sensor=Abnormal | AttackType)` — **hybrid methodology** (see below)
+- **Set 3** `P(Sensor=Abnormal | AttackType)` — engineering judgment informed by attack mechanisms and published detection rates (see below)
 
 Final constants are printed at the end for copy-paste into `qubayes/qubayes/cyber_attack_bn.py`.
 
@@ -131,25 +131,26 @@ Physical column values are assigned **by sensor type** and applied consistently 
 
 ## Key Results
 
-### Inference accuracy and efficiency (10 runs, N=400/512 shots — simulator)
+### Inference accuracy and efficiency (10 runs, 1024 shots — simulator)
 
 | Method | Mean \|Err\| (avg Q1–Q4) | Notes |
 |--------|--------------------------|-------|
 | Exact (pgmpy VE) | 0 | Ground truth |
 | **QRS** | **0.0028** | 99.7% acceptance rate; **123× speedup** over CRS for rare-evidence queries |
 | CRS | 0.0058 | 0.81% acceptance for Q1/Q2 (rare evidence) |
-| QVI-RA1 | 0.0109 | Best single-query result: Q4 error = 0.0034 |
-| QVI-RA0 | 0.0146 | Simplest Born machine (2 params); best Q1 result = 0.0052 |
-| CLW | 0.0077 | ESS 2.5% for Q1/Q2 — weight degeneracy |
+| QVI-RA1 | 0.0146 | Best QVI variant overall |
 | QLW | 0.0147 | No advantage over CLW; quantum circuit does not resolve weight degeneracy |
-| CAVI | 0.143 | Mean-field collapse on Q1/Q2 (error ≈ 0.28); exact on Q3/Q4 (direct evidence) |
+| QVI-RA0 | 0.0195 | Simplest Born machine (2 params) |
+| CLW | 0.0304 | ESS 2.1% for Q1/Q2 — weight degeneracy |
+| QVI-BN | 0.0380 | BN-structured ansatz (3 params) |
+| CAVI | 0.1427 | Mean-field collapse on Q1/Q2 (error ≈ 0.28); exact on Q3/Q4 (direct evidence) |
 
 ### Quantum advantage (Phase 1b — simulator)
 
 | Query | Evidence rarity | QRS speedup | QRS std reduction |
 |-------|----------------|-------------|-------------------|
-| Q1/Q2 | P(e) = 0.0091 | **123×** | **6×** |
-| Q3/Q4 | P(e) = 0.0319 | **29×** | **4×** |
+| Q1/Q2 | P(e) ≈ 0.81% | **123×** | **5.6×** |
+| Q3/Q4 | P(e) ≈ 3.4% | **29×** | **3.7×** |
 
 ### IBM Quantum hardware results (Phase 6 — ibm_fez, Heron r2)
 
@@ -226,11 +227,11 @@ This work extends the framework with:
 ## References
 
 - Faramondi, L. et al. "A Hardware-in-the-Loop Water Distribution Testbed Dataset for Cyber-Physical Security Testing." *IEEE Access* (2021).
+- Faramondi, L. et al. "Cyber-Physical Attack Detection in Water Distribution Systems with LSTM and Autoencoder." (2023). — Detection rates used to inform Set 3 CPTs.
 - Krebs, F. et al. "Modeling Musical Knowledge with Quantum Bayesian Networks." *ICMCI* (2024).
 - Low, G. H., Yoder, T. J., & Chuang, I. L. "Quantum inference on Bayesian networks." *Physical Review A* 89.6 (2014).
-- MITRE ATT&CK for ICS — T0814 (Denial of Service), T0830 (Manipulate I/O Image), T0856 (Spoof Reporting Message).
-- ISA-TR84.00.09 — Guidance for Safety Instrumented Systems (false-alert rates for process instrumentation).
-- IEC 61511 — Functional Safety: Safety Instrumented Systems (diagnostic coverage ranges).
+- Borujeni, S. E. et al. "Quantum circuit representation of Bayesian networks." *Expert Systems with Applications* 176 (2021).
+- MITRE ATT&CK for ICS — threat landscape context for SCADA security modelling.
 
 ---
 
