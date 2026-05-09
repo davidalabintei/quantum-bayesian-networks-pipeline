@@ -162,7 +162,7 @@ QRS, QLW, and QVI were evaluated on IBM `ibm_fez` for Q3/Q4 (evidence: A2=MiTM, 
 | QLW | 0.0500 | **0.5832** | 0.9470 | **0.5844** | 10q, d=98 | none |
 | QVI-RA0 | 0.6033 | 0.0299 | 0.3889 | 0.0263 | 2q, d=4 | n/a |
 | QVI-RA1 | 0.6443 | **0.0111** | 0.3411 | 0.0216 | 2q, d=8 | n/a |
-| QVI-BN | 0.6455 | 0.0123 | 0.3459 | **0.0167** | 2q, d=13 | n/a |
+| QVI-BN | 0.6455 | 0.0123 | 0.3459 | **0.0167** | 2q, d=11 | n/a |
 
 **Key findings:**
 1. **QRS** posteriors collapse toward the uniform prior (0.25) — the 10-qubit Grover circuit exceeds the device's coherence budget.
