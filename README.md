@@ -149,8 +149,8 @@ Physical column values are assigned **by sensor type** and applied consistently 
 
 | Query | Evidence rarity | QRS speedup | QRS std reduction |
 |-------|----------------|-------------|-------------------|
-| Q1/Q2 | P(e) ≈ 0.81% | **123×** | **5.6×** |
-| Q3/Q4 | P(e) ≈ 3.4% | **29×** | **3.7×** |
+| Q1/Q2 | P(e) = 0.91% | **123×** | **~6×** |
+| Q3/Q4 | P(e) = 3.19% | **29×** | **~4×** |
 
 ### IBM Quantum hardware results (Phase 6 — ibm_fez, Heron r2)
 
@@ -158,7 +158,7 @@ QRS, QLW, and QVI were evaluated on IBM `ibm_fez` for Q3/Q4 (evidence: A2=MiTM, 
 
 | Method | Q3 HW | Q3 \|Err\| | Q4 HW | Q4 \|Err\| | Circuit | Grover |
 |--------|-------|-----------|-------|-----------|---------|--------|
-| QRS | 0.3185 | 0.3147 | 0.2448 | 0.1178 | 10q, d=102 | k=4 |
+| QRS | 0.2856 | 0.3476 | 0.2144 | 0.1482 | 10q, d=102 | k=4 |
 | QLW | 0.0500 | **0.5832** | 0.9470 | **0.5844** | 10q, d=98 | none |
 | QVI-RA0 | 0.6033 | 0.0299 | 0.3889 | 0.0263 | 2q, d=4 | n/a |
 | QVI-RA1 | 0.6443 | **0.0111** | 0.3411 | 0.0216 | 2q, d=8 | n/a |
@@ -167,7 +167,7 @@ QRS, QLW, and QVI were evaluated on IBM `ibm_fez` for Q3/Q4 (evidence: A2=MiTM, 
 **Key findings:**
 1. **QRS** posteriors collapse toward the uniform prior (0.25) — the 10-qubit Grover circuit exceeds the device's coherence budget.
 2. **QLW** is even worse than QRS despite being 4 layers shallower (depth 98 vs 102). The likelihood reweighting amplifies noise: corrupted samples receive wrong weights, producing posteriors further from exact than the uniform prior. This confirms the QBN state-preparation encoding is the bottleneck, not Grover amplification specifically.
-3. **QVI** Born machine circuits (2 qubits, depth 4–13) incur near-zero noise penalty, with hardware errors 10–30× smaller than QRS.
+3. **QVI** Born machine circuits (2 qubits, depth 4–13) incur near-zero noise penalty, with hardware errors ~10–30× smaller than QRS.
 
 **Conclusion:** Circuit depth — not algorithm class — determines NISQ viability for quantum probabilistic inference. Classical post-processing (reweighting) cannot rescue noisy quantum samples.
 
