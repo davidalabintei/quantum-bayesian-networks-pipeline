@@ -114,18 +114,18 @@ Open and run **`cyber_inference_experiments.ipynb`** top to bottom.
 
 ---
 
-## CPT Methodology — Set 3 (Hybrid)
+## CPT Methodology — Set 3 (Observation Likelihoods)
 
-Set 3 emission probabilities `P(Sensor=Abnormal | AttackType)` use a **hybrid methodology** — each column is derived by a different means appropriate to the attack mechanism:
+Set 3 emission probabilities `P(Sensor=Abnormal | AttackType)` are assigned using **engineering judgment informed by the attack mechanisms and by the detection probabilities reported in Faramondi et al. (2023)**, who applied LSTM and autoencoder anomaly detectors to the same testbed. The dataset provides attack-window labels but not sensor-level anomaly ground truth, so these probabilities cannot be estimated empirically from the data alone.
 
-| Column | Method | Value | Basis |
-|--------|--------|-------|-------|
-| Normal | ISA-TR84 false-alert floor | 0.01 | Real deployments have calibration drift; testbed shows zero false positives (artefact) |
-| MiTM | Rule-based — stealth property | 0.10 | MITRE ATT&CK for ICS T0856/T0830: attacker replays legitimate values to SCADA |
-| DoS | Rule-based — PLC starvation | 0.80 | MITRE ATT&CK for ICS T0814: uncontrolled process drifts, sensor readings become abnormal |
-| Physical | Sensor-type tier system | tank=0.80, valve=0.60, pump/flow=0.55 | Functional role in water distribution; data anchor: S1 pump 290/550 ≈ 0.527 (Laplace α=0.5) |
+| Column | Value | Basis |
+|--------|-------|-------|
+| Normal | 0.01 | Testbed shows zero false positives (artefact); real deployments have calibration drift and measurement noise |
+| MiTM | 0.10 | MiTM on MODBUS injects plausible-looking values — spoofing is largely effective but imperfect |
+| DoS | 0.80 | DoS floods saturate the PLC's TCP stack, preventing control loop execution; process drifts from setpoint |
+| Physical | tank=0.80, valve=0.60, pump/flow=0.55 | Consistent with Faramondi et al. detection rates (58–79% by component); data anchor: S1 pump 290/550 ≈ 0.527 |
 
-Physical column tier values are applied **consistently across both subsystems** by sensor type — not by the specific fault scenarios in the dataset — because any subsystem can experience any fault type in a real deployment.
+Physical column values are assigned **by sensor type** and applied consistently across both subsystems — not by the specific fault scenarios in the dataset — because any subsystem can experience any fault type in a real deployment.
 
 ---
 

@@ -18,7 +18,7 @@
 
 **Novel contributions (honestly scoped):**
 1. First application of QBNs to cyber-physical SCADA threat detection, grounded in a real HIL dataset
-2. A hybrid CPT derivation methodology combining data, MITRE ATT&CK for ICS, and ISA/IEC standards — a reusable template for infrastructure BN modelling under data sparsity
+2. A CPT derivation methodology combining operational data, engineering judgment informed by attack mechanisms, and published detection rates (Faramondi et al. 2023) — a reusable template for infrastructure BN modelling under data sparsity
 3. The most comprehensive comparison of quantum inference methods for BNs to date (7 methods, 4 queries, simulator + hardware)
 4. First empirical evidence that circuit depth — not algorithm class — determines which quantum inference methods survive on NISQ hardware: QRS (10q, depth 102) collapses toward uniform, QLW (10q, depth 98) is even worse due to noise-amplified reweighting, while QVI (2q, depth 4–13) incurs near-zero noise penalty. Classical post-processing cannot rescue noisy quantum samples.
 
@@ -73,14 +73,14 @@
 - 8 nodes, 4 attack states per attack node, binary sensor nodes.
 - Diagram of full network.
 
-### 3.3 Conditional Probability Table Derivation (Hybrid Methodology)
+### 3.3 Conditional Probability Table Derivation
 - **Set 1** — P(A1): data-derived from attack window timestamps.
-- **Set 2** — P(A2 | A1): data-derived transition matrix; PLC-targeting label correction.
-- **Set 3** — P(Sensor=Abnormal | AttackType): hybrid approach.
-  - Normal column: ISA-TR84.00.09 false-alert floor (0.01); testbed artefact discussion.
-  - MiTM column: rule-based stealth property (0.10); MITRE T0856/T0830.
-  - DoS column: rule-based PLC starvation (0.80); MITRE T0814.
-  - Physical column: sensor-type tier system (tank=0.80, valve=0.60, pump/flow=0.55); IEC 61511; data anchor (S1 pump 290/550 ≈ 0.527, Laplace α=0.5).
+- **Set 2** — P(A2 | A1): data-derived transition matrix; PLC-targeting label correction. Laplace smoothing (α=0.5).
+- **Set 3** — P(Sensor=Abnormal | AttackType): engineering judgment informed by attack mechanisms and published detection rates (Faramondi et al. 2023, who applied LSTM and autoencoder detectors to the same testbed). The dataset provides attack-window labels but not sensor-level anomaly ground truth.
+  - Normal column (0.01): testbed shows zero false positives (artefact); real deployments have calibration drift.
+  - MiTM column (0.10): MiTM on MODBUS injects plausible-looking values; spoofing is largely effective but imperfect.
+  - DoS column (0.80): DoS floods starve the PLC, preventing control loop execution; process drifts from setpoint.
+  - Physical column: sensor-type tiers (tank=0.80, valve=0.60, pump/flow=0.55); consistent with Faramondi et al. detection rates (58–79% by component); data anchor (S1 pump 290/550 ≈ 0.527).
 - Frame as a reusable methodology template for infrastructure BN modelling under data sparsity.
 
 ### 3.4 Diagnostic Queries
@@ -217,7 +217,7 @@ Q1/Q2 test rare sensor evidence; Q3/Q4 test direct attack-state evidence. Togeth
 ### 7.2 Practical Guidance
 - Near-term (NISQ): use QVI for quantum-hardware deployment; use QRS on simulator for benchmarking and as evidence of future advantage.
 - Fault-tolerant era: QRS becomes viable and offers provable speedup — the transition point depends on coherence improvements and error correction overhead.
-- For ICS practitioners: the hybrid CPT methodology (Section 3.3) is applicable to other infrastructure BNs regardless of quantum/classical inference choice.
+- For ICS practitioners: the CPT derivation methodology (Section 3.3) — engineering judgment anchored to published detection rates — is applicable to other infrastructure BNs regardless of quantum/classical inference choice.
 
 ### 7.3 Limitations
 - Small BN (8 nodes). Scalability to larger networks requires investigation — QVI circuit depth may grow for higher-dimensional posteriors; QRS circuit depth scales with BN size.
