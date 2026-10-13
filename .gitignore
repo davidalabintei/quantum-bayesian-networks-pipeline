@@ -29,3 +29,6 @@ results/
 qubayes/qubayes/rail_defect_bn.py
 qubayes/qubayes/rail_all_bn.py
 qubayes/qubayes/qubayes_tools_kwon.py
+
+# Obsolete predecessor notebook (superseded by cyber_bn_cpt_generation.ipynb)
+cyber qbn probs.ipynb
