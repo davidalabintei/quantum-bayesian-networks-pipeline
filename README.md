@@ -2,10 +2,12 @@
 
 This repository contains the full implementation, CPT derivation, and inference experiments for the paper:
 
-> **Quantum Bayesian Networks for Cyber-Physical Threat Prediction in Pipeline SCADA Systems**
-> David Alabintei — University of Maryland, Civil & Environmental Engineering
+> **Quantum Bayesian Network Inference for Pipeline SCADA Threat Detection on NISQ Hardware**
+> Dengimowei David Alabintei, Benjamin Boateng, Nii Attoh-Okine
+> Department of Civil and Environmental Engineering, University of Maryland, College Park
+> *Submitted to the ASCE-ASME Journal of Risk and Uncertainty in Engineering Systems, Part A: Civil Engineering.*
 
-The work applies Quantum Bayesian Networks (QBNs) to real-time cyber-physical threat detection in a SCADA water distribution pipeline system, using the Hardware-in-the-Loop (HIL) Water Distribution Testbed dataset (Faramondi et al., *IEEE Access*, 2021).
+The work applies Quantum Bayesian Networks (QBNs) to cyber-physical threat assessment in a SCADA water distribution pipeline system, using the Hardware-in-the-Loop (HIL) Water Distribution Testbed dataset (Faramondi et al., *IEEE Access*, 2021).
 
 ---
 
@@ -26,7 +28,7 @@ TankState_1     TankState_2
 - **S2** (simulated subsystem) — controlled by PLC2: tank 6, valve 20, flow sensor 1
 - **Attack states**: Normal, MiTM, DoS, Physical
 
-Seven inference methods are compared across four diagnostic queries, from exact inference through classical and quantum sampling to variational inference and sensitivity analysis.
+Eight inference methods are compared across four diagnostic queries, from exact inference through classical and quantum sampling to variational inference and sensitivity analysis.
 
 ---
 
@@ -49,12 +51,12 @@ Update the path constants at the top of `cyber_bn_cpt_generation.ipynb` to match
 ```
 .
 ├── cyber_bn_cpt_generation.ipynb      # CPT derivation (Sets 1, 2, 3) from HIL dataset
-├── cyber_inference_experiments.ipynb  # Main experiment notebook (Phases 1–5)
+├── cyber_inference_experiments.ipynb  # Main experiment notebook (Phases 1–6)
 ├── cyber_qubayes.ipynb                # Exploratory QBN queries (supplementary)
 ├── requirements.txt                   # Python dependencies
 ├── phase5_sensitivity.pdf             # Generated sensitivity analysis figure
 │
-└── qubayes/                           # QBN framework (Krebs et al., ICMCI 2024)
+└── qubayes/                           # QBN framework (Krebs et al., CBMI 2024)
     └── qubayes/
         ├── qubayes_tools.py               # Core QBN: Graph, Node, QBNQuery
         ├── cyber_attack_bn.py             # CPT constants — single source of truth
@@ -136,7 +138,7 @@ Physical column values are assigned **by sensor type** and applied consistently 
 | Method | Mean \|Err\| (avg Q1–Q4) | Notes |
 |--------|--------------------------|-------|
 | Exact (pgmpy VE) | 0 | Ground truth |
-| **QRS** | **0.0028** | 99.7% acceptance rate; **123× speedup** over CRS for rare-evidence queries |
+| **QRS** | **0.0028** | 99.7% acceptance rate; **123× acceptance gain** over CRS for rare-evidence queries |
 | CRS | 0.0058 | 0.81% acceptance for Q1/Q2 (rare evidence) |
 | QVI-RA1 | 0.0146 | Best QVI variant overall |
 | QLW | 0.0147 | No advantage over CLW; quantum circuit does not resolve weight degeneracy |
@@ -147,7 +149,7 @@ Physical column values are assigned **by sensor type** and applied consistently 
 
 ### Quantum advantage (Phase 1b — simulator)
 
-| Query | Evidence rarity | QRS speedup | QRS std reduction |
+| Query | Evidence rarity | QRS acceptance gain | QRS std reduction |
 |-------|----------------|-------------|-------------------|
 | Q1/Q2 | P(e) = 0.91% | **123×** | **~6×** |
 | Q3/Q4 | P(e) = 3.19% | **29×** | **~4×** |
@@ -167,7 +169,7 @@ QRS, QLW, and QVI were evaluated on IBM `ibm_fez` for Q3/Q4 (evidence: A2=MiTM, 
 **Key findings:**
 1. **QRS** posteriors collapse toward the uniform prior (0.25) — the 10-qubit Grover circuit exceeds the device's coherence budget.
 2. **QLW** is even worse than QRS despite being 4 layers shallower (depth 98 vs 102). The likelihood reweighting amplifies noise: corrupted samples receive wrong weights, producing posteriors further from exact than the uniform prior. This confirms the QBN state-preparation encoding is the bottleneck, not Grover amplification specifically.
-3. **QVI** Born machine circuits (2 qubits, depth 4–13) incur near-zero noise penalty, with hardware errors ~10–30× smaller than QRS.
+3. **QVI** Born machine circuits (2 qubits, depth 4–11) incur near-zero noise penalty, with hardware errors 6–31× smaller than QRS.
 
 **Conclusion:** Circuit depth — not algorithm class — determines NISQ viability for quantum probabilistic inference. Classical post-processing (reweighting) cannot rescue noisy quantum samples.
 
@@ -211,7 +213,7 @@ QRS, QLW, and QVI were evaluated on IBM `ibm_fez` for Q3/Q4 (evidence: A2=MiTM, 
 
 The `qubayes` package is based on:
 
-> Krebs, F., Fuerntratt, H., Unterberger, R., & Graf, F. "Modeling Musical Knowledge with Quantum Bayesian Networks." *Proceedings of the International Conference on Content-based Multimedia Indexing* (2024).
+> Krebs, F., Fuerntratt, H., Unterberger, R., & Graf, F. "Modeling Musical Knowledge with Quantum Bayesian Networks." *Proceedings of the 21st International Conference on Content-Based Multimedia Indexing (CBMI)* (2024). https://doi.org/10.1109/CBMI62980.2024.10859245
 
 Original repository: [github.com/JR-DIGITAL/qubayes](https://github.com/JR-DIGITAL/qubayes)
 
@@ -226,11 +228,11 @@ This work extends the framework with:
 
 ## References
 
-- Faramondi, L. et al. "A Hardware-in-the-Loop Water Distribution Testbed Dataset for Cyber-Physical Security Testing." *IEEE Access* (2021).
-- Faramondi, L. et al. "Cyber-Physical Attack Detection in Water Distribution Systems with LSTM and Autoencoder." (2023). — Detection rates used to inform Set 3 CPTs.
-- Krebs, F. et al. "Modeling Musical Knowledge with Quantum Bayesian Networks." *ICMCI* (2024).
-- Low, G. H., Yoder, T. J., & Chuang, I. L. "Quantum inference on Bayesian networks." *Physical Review A* 89.6 (2014).
-- Borujeni, S. E. et al. "Quantum circuit representation of Bayesian networks." *Expert Systems with Applications* 176 (2021).
+- Faramondi, L. et al. "A Hardware-in-the-Loop Water Distribution Testbed Dataset for Cyber-Physical Security Testing." *IEEE Access* 9 (2021). https://doi.org/10.1109/ACCESS.2021.3109465
+- Faramondi, L., Flammini, F., Guarino, S., & Setola, R. "A hybrid behavior- and Bayesian network-based framework for cyber-physical anomaly detection." *Computers and Electrical Engineering* 112 (2023). https://doi.org/10.1016/j.compeleceng.2023.108988 — Detection rates used to inform Set 3 CPTs.
+- Krebs, F. et al. "Modeling Musical Knowledge with Quantum Bayesian Networks." *CBMI* (2024). https://doi.org/10.1109/CBMI62980.2024.10859245
+- Low, G. H., Yoder, T. J., & Chuang, I. L. "Quantum inference on Bayesian networks." *Physical Review A* 89.6 (2014). https://doi.org/10.1103/PhysRevA.89.062315
+- Borujeni, S. E. et al. "Quantum circuit representation of Bayesian networks." *Expert Systems with Applications* 176 (2021). https://doi.org/10.1016/j.eswa.2021.114768
 - MITRE ATT&CK for ICS — threat landscape context for SCADA security modelling.
 
 ---
